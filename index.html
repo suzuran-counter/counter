@@ -358,42 +358,4 @@
   </script>
 
 </body>
-</html>　github側はこれ。コードgsはfunction doPost(e) {
-  try {
-    // 受け取ったデータを JSON としてパース
-    const data = JSON.parse(e.postData.contents);
-
-    // スプレッドシートを開く
-    const ss = SpreadsheetApp.openById("1oBb_OJUgwNaMAq18_FVpbsmHVnpcYHqoiD1aPU_wjCc");
-    const sheet = ss.getSheetByName("visitor"); // シート名が visitor の場合
-
-    // 書き込むデータを整形
-    const row = [
-      new Date(),          // タイムスタンプ
-      data.name || "",     // 名前
-      data.count || "",    // カウント
-      data.memo || ""      // メモなど
-    ];
-
-    // 1 行追加
-    sheet.appendRow(row);
-
-    // レスポンス返す
-    return ContentService
-      .createTextOutput("OK")
-      .setMimeType(ContentService.MimeType.TEXT);
-
-  } catch (error) {
-    // エラー時のレスポンス
-    return ContentService
-      .createTextOutput("ERROR: " + error)
-      .setMimeType(ContentService.MimeType.TEXT);
-  }
-}
-
-// GET アクセスが来たときのエラー防止用（必須）
-function doGet(e) {
-  return ContentService
-    .createTextOutput("READY")
-    .setMimeType(ContentService.MimeType.TEXT);
-}
+</html>
