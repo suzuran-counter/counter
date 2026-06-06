@@ -190,14 +190,13 @@
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload)
         });
-        console.log("GAS送信完了");
       } catch (e) {
         console.error("GAS送信エラー", e);
       }
     }
   </script>
 
-  <!-- ★ 元コード -->
+  <!-- ★ メインロジック -->
   <script>
     const photos = [
       "https://placehold.jp/600x400.png?text=1",
@@ -309,16 +308,18 @@
 
       updatePage();
 
-      document.getElementById("count").addEventListener("input", e => {
-  counts[page - 1] = e.target.value;
-  updateSummary();
-});
+      // ★ input + change の両方
+      const countInput = document.getElementById("count");
 
-document.getElementById("count").addEventListener("change", e => {
-  counts[page - 1] = e.target.value;
-  updateSummary();
-});
+      countInput.addEventListener("input", e => {
+        counts[page - 1] = e.target.value;
+        updateSummary();
+      });
 
+      countInput.addEventListener("change", e => {
+        counts[page - 1] = e.target.value;
+        updateSummary();
+      });
 
       document.getElementById("nextBtn").onclick = async () => {
         if (page < 11) {
@@ -364,42 +365,4 @@ document.getElementById("count").addEventListener("change", e => {
   </script>
 
 </body>
-</html>　github側はこれ。コードgsはfunction doPost(e) {
-  try {
-    // 受け取ったデータを JSON としてパース
-    const data = JSON.parse(e.postData.contents);
-
-    // スプレッドシートを開く
-    const ss = SpreadsheetApp.openById("1oBb_OJUgwNaMAq18_FVpbsmHVnpcYHqoiD1aPU_wjCc");
-    const sheet = ss.getSheetByName("visitor"); // シート名が visitor の場合
-
-    // 書き込むデータを整形
-    const row = [
-      new Date(),          // タイムスタンプ
-      data.name || "",     // 名前
-      data.count || "",    // カウント
-      data.memo || ""      // メモなど
-    ];
-
-    // 1 行追加
-    sheet.appendRow(row);
-
-    // レスポンス返す
-    return ContentService
-      .createTextOutput("OK")
-      .setMimeType(ContentService.MimeType.TEXT);
-
-  } catch (error) {
-    // エラー時のレスポンス
-    return ContentService
-      .createTextOutput("ERROR: " + error)
-      .setMimeType(ContentService.MimeType.TEXT);
-  }
-}
-
-// GET アクセスが来たときのエラー防止用（必須）
-function doGet(e) {
-  return ContentService
-    .createTextOutput("READY")
-    .setMimeType(ContentService.MimeType.TEXT);
-}
+</html>
