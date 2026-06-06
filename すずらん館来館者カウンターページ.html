@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>来館者カウンター</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/encoding-japanese/2.0.0/encoding.min.js"></script>
+
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      padding: 20px;
+      background: #F3FFE8;
+      color: #333;
+    }
+
+    #headerBar {
+      display: flex;
+      justify-content: flex-start;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    h2 {
+      color: #1f5fa5;
+      margin: 0;
+      padding: 0;
+      text-shadow: 0 1px 2px rgba(255,255,255,0.7);
+    }
+
+    #container {
+      display: flex;
+      gap: 20px;
+      align-items: flex-start;
+      margin-top: 10px;
+    }
+
+    .photo {
+      width: 100%;
+      max-width: 360px;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+
+    #summaryBox {
+      width: 280px;
+      border: 1px solid #ddd;
+      background: rgba(255,255,255,0.95);
+      border-radius: 10px;
+      padding: 12px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+    }
+
+    #summaryBox strong {
+      display: block;
+      font-size: 15px;
+      margin-bottom: 8px;
+      color: #1f5fa5;
+    }
+
+    .summary-row {
+      padding: 4px 0;
+      border-bottom: 1px solid #eee;
+      font-size: 14px;
+    }
+
+    .unfilled {
+      color: red;
+      font-weight: bold;
+    }
+
+    input {
+      font-size: 22px;
+      padding: 10px;
+      width: 160px;
+      border: 1px solid #bbb;
+      border-radius: 6px;
+      margin-top: 20px;
+      margin-bottom: 20px;
+      background: rgba(255,255,255,0.9);
+    }
+
+    button {
+      padding: 12px 24px;
+      font-size: 18px;
+      margin: 10px 20px 0 0;
+      border: none;
+      border-radius: 6px;
+      background: #1f5fa5;
+      color: white;
+      cursor: pointer;
+      box-shadow: 0 3px 6px rgba(0,0,0,0.25);
+    }
+
+    button:hover {
+      background: #17497f;
+    }
+
+    #completePage {
+      display: none;
+      text-align: center;
+      margin-top: 40px;
+    }
+
+    #completePage h1 {
+      font-size: 28px;
+      color: #1f5fa5;
+    }
+
+    @media (max-width: 600px) {
+      #container {
+        flex-direction: column;
+        align-items: center;
+      }
+      #summaryBox {
+        width: 90%;
+      }
+      .photo {
+        max-width: 300px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div id="headerBar">
+    <h2>来館者カウンター</h2>
+  </div>
+
+  <div id="today"></div>
+  <div id="pageNumber"></div>
+  <div id="titleText"></div>
+
+  <div id="mainPage">
+    <div id="container">
+
+      <img id="photo" class="photo" src="" alt="写真">
+
+      <div id="summaryBox">
+        <strong>入力一覧</strong>
+        <div id="summary"></div>
+      </div>
+
+    </div>
+
+    <div>
+      <label>人数：</label>
+      <input type="number" id="count" inputmode="numeric">
+    </div>
+
+    <div id="nav">
+      <button id="backBtn">戻る</button>
+      <button id="nextBtn">次へ</button>
+      <button id="csvBtn">CSV出力</button>
+      <button id="listBtn">保存データ一覧</button>
+    </div>
+
+    <div id="dataList"></div>
+  </div>
+
+  <div id="completePage">
+    <h1>保存が完了しました🎊</h1>
+
+    <button id="backToMain">戻る</button>
+    <button id="csvBtn2">CSV出力</button>
+    <button id="listBtn2">保存データ一覧</button>
+
+    <div id="dataList2"></div>
+  </div>
+
+  <!-- ★ GAS連携 -->
+  <script>
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbw-nOV9eY-4Vm-AqunZumJ21hVhGIoE1J3yHbukggAibFCh6AqueIl1fy5KySGoTYGN6w/exec";
+
+    async function sendToGAS() {
+      const d = new Date();
+      const dateStr = `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;
+
+      const payload = {
+        date: dateStr,
+        values: [...counts]
+      };
+
+      try {
+        await fetch(GAS_URL, {
+          method: "POST",
+          mode: "no-cors",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        console.log("GAS送信完了");
+      } catch (e) {
+        console.error("GAS送信エラー", e);
+      }
+    }
+  </script>
+
+  <!-- ★ 元コード -->
+  <script>
+    const photos = [
+      "https://placehold.jp/600x400.png?text=1",
+      "https://placehold.jp/600x400.png?text=2",
+      "https://placehold.jp/600x400.png?text=3",
+      "https://placehold.jp/600x400.png?text=4",
+      "https://placehold.jp/600x400.png?text=5",
+      "https://placehold.jp/600x400.png?text=6",
+      "https://placehold.jp/600x400.png?text=7",
+      "https://placehold.jp/600x400.png?text=8",
+      "https://placehold.jp/600x400.png?text=9",
+      "https://placehold.jp/600x400.png?text=10",
+      "https://placehold.jp/600x400.png?text=11"
+    ];
+
+    const titles = [
+      "（1階）三井住友横ch1",
+      "（1階）ミスド横ch2",
+      "（1階）KNT横ch1",
+      "（1階）正栄クリーニング横ch2",
+      "（1階）警備室横ch2",
+      "（1階）医療モール入口ch1",
+      "（2階）しまむら横",
+      "屋上ギャラリー横EV上",
+      "屋上近商事務所前EV上",
+      "屋上喫煙室階段上",
+      "屋上スライヴ横階段上"
+    ];
+
+    let page = 1;
+    const counts = new Array(11).fill("");
+
+    function updateSummary() {
+      let html = "";
+      for (let i = 0; i < 11; i++) {
+        const v = counts[i] === "" ? "未入力" : counts[i];
+        const cls = counts[i] === "" ? "unfilled" : "";
+        html += `<div class="summary-row ${cls}">${titles[i]}： ${v}</div>`;
+      }
+      document.getElementById("summary").innerHTML = html;
+    }
+
+    function updatePage() {
+      document.getElementById("photo").src = photos[page - 1];
+      document.getElementById("pageNumber").textContent = `ページ ${page} / 11`;
+      document.getElementById("titleText").textContent = titles[page - 1];
+      document.getElementById("count").value = counts[page - 1];
+      document.getElementById("nextBtn").textContent = (page === 11) ? "保存" : "次へ";
+      updateSummary();
+    }
+
+    function saveTodayData() {
+      const d = new Date();
+      const dateStr = `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;
+
+      const record = { date: dateStr, values: [...counts] };
+      let saved = JSON.parse(localStorage.getItem("visitorRecords") || "[]");
+
+      const index = saved.findIndex(r => r.date === dateStr);
+      if (index >= 0) saved[index] = record;
+      else saved.push(record);
+
+      localStorage.setItem("visitorRecords", JSON.stringify(saved));
+    }
+
+    function exportCSV() {
+      const saved = JSON.parse(localStorage.getItem("visitorRecords") || "[]");
+      if (saved.length === 0) return alert("保存されたデータがありません。");
+
+      let csv = "date," + titles.join(",") + "\n";
+      saved.forEach(r => csv += r.date + "," + r.values.join(",") + "\n");
+
+      const sjisArray = Encoding.convert(Encoding.stringToCode(csv), "SJIS", "UNICODE");
+      const blob = new Blob([new Uint8Array(sjisArray)], { type: "text/csv" });
+      const url = URL.createObjectURL(blob);
+
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "visitor_data.csv";
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function showSavedDataList(targetId) {
+      const area = document.getElementById(targetId);
+      if (area.innerHTML.trim() !== "") return area.innerHTML = "";
+
+      const saved = JSON.parse(localStorage.getItem("visitorRecords") || "[]");
+      if (saved.length === 0) return area.innerHTML = "<p>保存されたデータはありません。</p>";
+
+      let html = `<table><tr><th>日付</th>`;
+      titles.forEach(t => html += `<th>${t}</th>`);
+      html += `</tr>`;
+
+      saved.forEach(r => {
+        html += `<tr><td>${r.date}</td>`;
+        r.values.forEach(v => html += `<td>${v}</td>`);
+        html += `</tr>`;
+      });
+
+      html += "</table>";
+      area.innerHTML = html;
+    }
+
+    function main() {
+      const d = new Date();
+      document.getElementById("today").textContent =
+        `日付：${d.getFullYear()}/${d.getMonth()+1}/${d.getDate()}`;
+
+      updatePage();
+
+      document.getElementById("count").addEventListener("input", e => {
+        counts[page - 1] = e.target.value;
+        updateSummary();
+      });
+
+      document.getElementById("nextBtn").onclick = async () => {
+        if (page < 11) {
+          page++;
+          updatePage();
+        } else {
+          const firstEmpty = counts.findIndex(v => v === "");
+          if (firstEmpty !== -1) {
+            alert("未入力のページがあります。");
+            page = firstEmpty + 1;
+            updatePage();
+            return;
+          }
+
+          saveTodayData();
+          await sendToGAS();
+
+          document.getElementById("mainPage").style.display = "none";
+          document.getElementById("completePage").style.display = "block";
+        }
+      };
+
+      document.getElementById("backBtn").onclick = () => {
+        if (page > 1) {
+          page--;
+          updatePage();
+        }
+      };
+
+      document.getElementById("csvBtn").onclick = exportCSV;
+      document.getElementById("listBtn").onclick = () => showSavedDataList("dataList");
+
+      document.getElementById("backToMain").onclick = () => {
+        document.getElementById("completePage").style.display = "none";
+        document.getElementById("mainPage").style.display = "block";
+      };
+
+      document.getElementById("csvBtn2").onclick = exportCSV;
+      document.getElementById("listBtn2").onclick = () => showSavedDataList("dataList2");
+    }
+
+    main();
+  </script>
+
+</body>
+</html>
