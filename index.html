@@ -172,7 +172,7 @@
 
   <!-- ★ GAS連携 -->
   <script>
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbw-nOV9eY-4Vm-AqunZumJ21hVhGIoE1J3yHbukggAibFCh6AqueIl1fy5KySGoTYGN6w/exec";
+    const GAS_URL = "★ここに大運のGAS URLを入れる★";
 
     async function sendToGAS() {
       const d = new Date();
@@ -190,14 +190,13 @@
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload)
         });
-        console.log("GAS送信完了");
       } catch (e) {
         console.error("GAS送信エラー", e);
       }
     }
   </script>
 
-  <!-- ★ 元コード -->
+  <!-- ★ メインロジック -->
   <script>
     const photos = [
       "https://placehold.jp/600x400.png?text=1",
@@ -281,24 +280,29 @@
       URL.revokeObjectURL(url);
     }
 
-    function showSavedDataList(targetId) {
+    // ★ スプレッドシート一覧表示
+    async function showSheetData(targetId) {
       const area = document.getElementById(targetId);
-      if (area.innerHTML.trim() !== "") return area.innerHTML = "";
 
-      const saved = JSON.parse(localStorage.getItem("visitorRecords") || "[]");
-      if (saved.length === 0) return area.innerHTML = "<p>保存されたデータはありません。</p>";
+      if (area.innerHTML.trim() !== "") {
+        area.innerHTML = "";
+        return;
+      }
 
-      let html = `<table><tr><th>日付</th>`;
-      titles.forEach(t => html += `<th>${t}</th>`);
-      html += `</tr>`;
+      const url = GAS_URL + "?mode=getData";
+      const res = await fetch(url);
+      const data = await res.json();
 
-      saved.forEach(r => {
-        html += `<tr><td>${r.date}</td>`;
-        r.values.forEach(v => html += `<td>${v}</td>`);
-        html += `</tr>`;
+      let html = "<table border='1' style='border-collapse:collapse; width:100%;'>";
+      data.forEach(row => {
+        html += "<tr>";
+        row.forEach(cell => {
+          html += `<td style="padding:4px;">${cell}</td>`;
+        });
+        html += "</tr>";
       });
-
       html += "</table>";
+
       area.innerHTML = html;
     }
 
@@ -309,7 +313,14 @@
 
       updatePage();
 
-      document.getElementById("count").addEventListener("input", e => {
+      const countInput = document.getElementById("count");
+
+      countInput.addEventListener("input", e => {
+        counts[page - 1] = e.target.value;
+        updateSummary();
+      });
+
+      countInput.addEventListener("change", e => {
         counts[page - 1] = e.target.value;
         updateSummary();
       });
@@ -343,7 +354,7 @@
       };
 
       document.getElementById("csvBtn").onclick = exportCSV;
-      document.getElementById("listBtn").onclick = () => showSavedDataList("dataList");
+      document.getElementById("listBtn").onclick = () => showSheetData("dataList");
 
       document.getElementById("backToMain").onclick = () => {
         document.getElementById("completePage").style.display = "none";
@@ -351,7 +362,7 @@
       };
 
       document.getElementById("csvBtn2").onclick = exportCSV;
-      document.getElementById("listBtn2").onclick = () => showSavedDataList("dataList2");
+      document.getElementById("listBtn2").onclick = () => showSheetData("dataList2");
     }
 
     main();
