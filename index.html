@@ -180,7 +180,7 @@
 
     const payload = {
       date: dateStr,
-      values: [...counts]   // 11個のカウント
+      values: [...counts]
     };
 
     try {
@@ -198,7 +198,7 @@
 </script>
 
 
-  <!-- ★ 元コード -->
+  <!-- ★ 元コード（修正は1行だけ） -->
   <script>
     const photos = [
       "https://placehold.jp/600x400.png?text=1",
@@ -310,7 +310,8 @@
 
       updatePage();
 
-      document.getElementById("count").addEventListener("input", e => {
+      /* ★★★ 修正したのはここだけ（input → change） ★★★ */
+      document.getElementById("count").addEventListener("change", e => {
         counts[page - 1] = e.target.value;
         updateSummary();
       });
