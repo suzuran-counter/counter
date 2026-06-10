@@ -66,6 +66,7 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
+      transition: background 0.3s ease;
     }
 
     .unfilled {
@@ -138,6 +139,19 @@
         max-width: 300px;
       }
     }
+
+    /* ★ 今のページをハイライト（淡い黄色＋左ライン＋アニメ） */
+    .active-row {
+      background: #fff7c2;
+      border-left: 6px solid #ffcc00;
+      animation: fadeIn 0.4s ease;
+    }
+
+    @keyframes fadeIn {
+      from { background: #ffffff; }
+      to   { background: #fff7c2; }
+    }
+
   </style>
 </head>
 
@@ -198,7 +212,7 @@
 
       const payload = {
         date: dateStr,
-        values: [...counts]   // ★ ここは14個（date + 14 = 15列）
+        values: [...counts]
       };
 
       try {
@@ -228,9 +242,9 @@
       "https://raw.githubusercontent.com/suzuran-counter/counter/main/images/PXL_20260609_001701301.jpg",
       "https://raw.githubusercontent.com/suzuran-counter/counter/main/images/PXL_20260609_001352080.jpg",
       "https://raw.githubusercontent.com/suzuran-counter/counter/main/images/PXL_20260609_000232656.jpg",
-      "https://placehold.jp/600x400.png?text=12",
-      "https://placehold.jp/600x400.png?text=13",
-      "https://placehold.jp/600x400.png?text=14"
+      "https://raw.githubusercontent.com/suzuran-counter/counter/main/images/PXL_20260610_031209669.jpg",
+      "https://raw.githubusercontent.com/suzuran-counter/counter/main/images/PXL_20260610_031209669.jpg",
+      "https://raw.githubusercontent.com/suzuran-counter/counter/main/images/PXL_20260610_031209669.jpg"
     ];
 
     const titles = [
@@ -252,7 +266,6 @@
 
     let page = 1;
 
-    // ★ カウント項目は14個だけ（シートの2〜15列目に対応）
     const counts = new Array(14).fill("");
 
     function jumpTo(p) {
@@ -267,12 +280,23 @@
         const v = counts[i] === "" ? "未入力" : counts[i];
         const cls = counts[i] === "" ? "unfilled" : "";
         html += `
-          <div class="summary-row ${cls}">
+          <div class="summary-row ${cls}" data-index="${i+1}">
             <span>${titles[i]}： ${v}</span>
             <button class="jumpBtn" onclick="jumpTo(${i+1})">移動</button>
           </div>`;
       }
       document.getElementById("summary").innerHTML = html;
+    }
+
+    function highlightCurrent() {
+      document.querySelectorAll(".summary-row").forEach(row => {
+        const idx = Number(row.dataset.index);
+        if (idx === page) {
+          row.classList.add("active-row");
+        } else {
+          row.classList.remove("active-row");
+        }
+      });
     }
 
     function updatePage() {
@@ -282,6 +306,7 @@
       document.getElementById("count").value = counts[page - 1];
       document.getElementById("nextBtn").textContent = (page === 14) ? "保存" : "次へ";
       updateSummary();
+      highlightCurrent();  /* ★ ハイライト */
     }
 
     function saveTodayData() {
@@ -353,11 +378,13 @@
       countInput.addEventListener("input", e => {
         counts[page - 1] = e.target.value;
         updateSummary();
+        highlightCurrent();
       });
 
       countInput.addEventListener("change", e => {
         counts[page - 1] = e.target.value;
         updateSummary();
+        highlightCurrent();
       });
 
       document.getElementById("nextBtn").onclick = async () => {
