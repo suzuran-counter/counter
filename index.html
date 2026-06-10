@@ -63,11 +63,30 @@
       padding: 4px 0;
       border-bottom: 1px solid #eee;
       font-size: 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
 
     .unfilled {
       color: red;
       font-weight: bold;
+    }
+
+    /* ★ ジャンプボタン（移動ボタン） */
+    .jumpBtn {
+      padding: 3px 8px;
+      font-size: 12px;
+      background: #1f5fa5;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-left: 8px;
+    }
+
+    .jumpBtn:hover {
+      background: #17497f;
     }
 
     input {
@@ -172,7 +191,7 @@
 
   <!-- ★ GAS連携 -->
   <script>
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbwCv-LGIfrPy69v0_J9e6nKcsvh-OPq_raH6sWpxDydbIIua3-dVG0t947Q0Aez8znRlA/exec";
+    const GAS_URL = "★ここに最新のGAS URL★";
 
     async function sendToGAS() {
       const d = new Date();
@@ -209,7 +228,10 @@
       "https://placehold.jp/600x400.png?text=8",
       "https://placehold.jp/600x400.png?text=9",
       "https://placehold.jp/600x400.png?text=10",
-      "https://placehold.jp/600x400.png?text=11"
+      "https://placehold.jp/600x400.png?text=11",
+      "https://placehold.jp/600x400.png?text=12",
+      "https://placehold.jp/600x400.png?text=13",
+      "https://placehold.jp/600x400.png?text=14"
     ];
 
     const titles = [
@@ -223,28 +245,42 @@
       "8.屋上ギャラリー横EV上",
       "9.屋上近商事務所前EV上",
       "10.屋上喫煙室階段上",
-      "11.屋上スライヴ横階段上"
+      "11.屋上スライヴ横階段上",
+      "12.近商：総売上",
+      "13.近商：その他売上",
+      "14.近商：来客者数"
     ];
 
     let page = 1;
-    const counts = new Array(11).fill("");
+    const counts = new Array(14).fill("");
+
+    /* ★ ジャンプ機能 */
+    function jumpTo(p) {
+      page = p;
+      updatePage();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
 
     function updateSummary() {
       let html = "";
-      for (let i = 0; i < 11; i++) {
+      for (let i = 0; i < 14; i++) {
         const v = counts[i] === "" ? "未入力" : counts[i];
         const cls = counts[i] === "" ? "unfilled" : "";
-        html += `<div class="summary-row ${cls}">${titles[i]}： ${v}</div>`;
+        html += `
+          <div class="summary-row ${cls}">
+            <span>${titles[i]}： ${v}</span>
+            <button class="jumpBtn" onclick="jumpTo(${i+1})">移動</button>
+          </div>`;
       }
       document.getElementById("summary").innerHTML = html;
     }
 
     function updatePage() {
       document.getElementById("photo").src = photos[page - 1];
-      document.getElementById("pageNumber").textContent = `ページ ${page} / 11`;
+      document.getElementById("pageNumber").textContent = `ページ ${page} / 14`;
       document.getElementById("titleText").textContent = titles[page - 1];
       document.getElementById("count").value = counts[page - 1];
-      document.getElementById("nextBtn").textContent = (page === 11) ? "保存" : "次へ";
+      document.getElementById("nextBtn").textContent = (page === 14) ? "保存" : "次へ";
       updateSummary();
     }
 
@@ -280,7 +316,6 @@
       URL.revokeObjectURL(url);
     }
 
-    // ★ スプレッドシート一覧表示
     async function showSheetData(targetId) {
       const area = document.getElementById(targetId);
 
@@ -326,7 +361,7 @@
       });
 
       document.getElementById("nextBtn").onclick = async () => {
-        if (page < 11) {
+        if (page < 14) {
           page++;
           updatePage();
         } else {
