@@ -303,7 +303,7 @@
       if (saved.length === 0) return alert("保存されたデータがありません。");
 
       let csv = "date," + titles.join(",") + "\n";
-      saved.forEach(r => csv += r.date + "," + r.values.join(",") + "\n");
+      saved.forEach(r => csv += r.date + "," + r.values.join(",") + "\n";
 
       const sjisArray = Encoding.convert(Encoding.stringToCode(csv), "SJIS", "UNICODE");
       const blob = new Blob([new Uint8Array(sjisArray)], { type: "text/csv" });
@@ -365,7 +365,8 @@
           page++;
           updatePage();
         } else {
-          const firstEmpty = counts.findIndex(v => v === "");
+          // ★ 未入力チェックは 14 個だけ
+          const firstEmpty = counts.slice(0, 14).findIndex(v => v === "");
           if (firstEmpty !== -1) {
             alert("未入力のページがあります。");
             page = firstEmpty + 1;
