@@ -198,7 +198,7 @@
 
       const payload = {
         date: dateStr,
-        values: [...counts]   // ★ 15個送る（最後は空欄）
+        values: [...counts]   // ★ ここは14個（date + 14 = 15列）
       };
 
       try {
@@ -252,8 +252,8 @@
 
     let page = 1;
 
-    // ★ counts は 15 個（最後は UI に出さない）
-    const counts = new Array(15).fill("");
+    // ★ カウント項目は14個だけ（シートの2〜15列目に対応）
+    const counts = new Array(14).fill("");
 
     function jumpTo(p) {
       page = p;
@@ -263,7 +263,7 @@
 
     function updateSummary() {
       let html = "";
-      for (let i = 0; i < 14; i++) {   // ★ 14行だけ表示
+      for (let i = 0; i < 14; i++) {
         const v = counts[i] === "" ? "未入力" : counts[i];
         const cls = counts[i] === "" ? "unfilled" : "";
         html += `
@@ -303,7 +303,7 @@
       if (saved.length === 0) return alert("保存されたデータがありません。");
 
       let csv = "date," + titles.join(",") + "\n";
-      saved.forEach(r => csv += r.date + "," + r.values.join(",") + "\n";
+      saved.forEach(r => csv += r.date + "," + r.values.join(",") + "\n");
 
       const sjisArray = Encoding.convert(Encoding.stringToCode(csv), "SJIS", "UNICODE");
       const blob = new Blob([new Uint8Array(sjisArray)], { type: "text/csv" });
@@ -365,8 +365,7 @@
           page++;
           updatePage();
         } else {
-          // ★ 未入力チェックは 14 個だけ
-          const firstEmpty = counts.slice(0, 14).findIndex(v => v === "");
+          const firstEmpty = counts.findIndex(v => v === "");
           if (firstEmpty !== -1) {
             alert("未入力のページがあります。");
             page = firstEmpty + 1;
