@@ -306,7 +306,7 @@
       document.getElementById("count").value = counts[page - 1];
       document.getElementById("nextBtn").textContent = (page === 14) ? "保存" : "次へ";
       updateSummary();
-      highlightCurrent();  /* ★ ハイライト */
+      highlightCurrent();
     }
 
     function saveTodayData() {
@@ -323,22 +323,36 @@
       localStorage.setItem("visitorRecords", JSON.stringify(saved));
     }
 
-    function exportCSV() {
-      const saved = JSON.parse(localStorage.getItem("visitorRecords") || "[]");
-      if (saved.length === 0) return alert("保存されたデータがありません。");
+    /* ★ CSV 出力を GAS に統一 */
+    async function exportCSV() {
+      const url = GAS_URL + "?mode=getData";
+      const res = await fetch(url);
+      const data = await res.json();
 
-      let csv = "date," + titles.join(",") + "\n";
-      saved.forEach(r => csv += r.date + "," + r.values.join(",") + "\n");
+      if (!data || data.length === 0) {
+        alert("保存されたデータがありません。");
+        return;
+      }
 
-      const sjisArray = Encoding.convert(Encoding.stringToCode(csv), "SJIS", "UNICODE");
+      let csv = "";
+      data.forEach(row => {
+        csv += row.join(",") + "\n";
+      });
+
+      const sjisArray = Encoding.convert(
+        Encoding.stringToCode(csv),
+        "SJIS",
+        "UNICODE"
+      );
+
       const blob = new Blob([new Uint8Array(sjisArray)], { type: "text/csv" });
-      const url = URL.createObjectURL(blob);
+      const url2 = URL.createObjectURL(blob);
 
       const a = document.createElement("a");
-      a.href = url;
+      a.href = url2;
       a.download = "visitor_data.csv";
       a.click();
-      URL.revokeObjectURL(url);
+      URL.revokeObjectURL(url2);
     }
 
     async function showSheetData(targetId) {
