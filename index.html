@@ -198,7 +198,7 @@
 
       const payload = {
         date: dateStr,
-        values: [...counts]
+        values: [...counts]   // ★ 15個送る（最後は空欄）
       };
 
       try {
@@ -248,10 +248,11 @@
       "12.近商：総売上",
       "13.近商：その他売上",
       "14.近商：来客者数"
-    
     ];
 
     let page = 1;
+
+    // ★ counts は 15 個（最後は UI に出さない）
     const counts = new Array(15).fill("");
 
     function jumpTo(p) {
@@ -262,7 +263,7 @@
 
     function updateSummary() {
       let html = "";
-      for (let i = 0; i < 15; i++) {
+      for (let i = 0; i < 14; i++) {   // ★ 14行だけ表示
         const v = counts[i] === "" ? "未入力" : counts[i];
         const cls = counts[i] === "" ? "unfilled" : "";
         html += `
@@ -276,10 +277,10 @@
 
     function updatePage() {
       document.getElementById("photo").src = photos[page - 1];
-      document.getElementById("pageNumber").textContent = `ページ ${page} / 15`;
+      document.getElementById("pageNumber").textContent = `ページ ${page} / 14`;
       document.getElementById("titleText").textContent = titles[page - 1];
       document.getElementById("count").value = counts[page - 1];
-      document.getElementById("nextBtn").textContent = (page === 15) ? "保存" : "次へ";
+      document.getElementById("nextBtn").textContent = (page === 14) ? "保存" : "次へ";
       updateSummary();
     }
 
@@ -360,7 +361,7 @@
       });
 
       document.getElementById("nextBtn").onclick = async () => {
-        if (page < 15) {
+        if (page < 14) {
           page++;
           updatePage();
         } else {
